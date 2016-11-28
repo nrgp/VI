@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<title>AIDS 2000-2014</title>
+	<script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+	<script src="VI.js"></script>
+	<link rel="stylesheet" type="text/css" href="VI.css" />
+</head>
+<body>
+	<center><h1>AIDS 2000-2014</h1></center>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.1.0/topojson.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+	<div id="top_button">
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS new cases')">New cases</button>
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS-related deaths (year)')">Related-deaths</button>
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS incidence')">Incidence</button>
+	</div>
+
+		<!--<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+ 
+    <div class="col-sm-12">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" value="" checked>
+                <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+                Tratamento
+            </label>
+        </div>
+    </div>
+
+     -->
+
+	<div id="canvas-svg"><script>genmap('Total AIDS new cases','2007');</script></div>
+	<div id="tooltip-container"></div>
+		<div id="canvas-buttom"><input type="range" id="myRange"  min="2000" max="2014" step="1" value"2007" oninput="showVal(this.value)" onchange="showVal(this.value); changeYear(this.value);">
+			<span id="valBox">2007</span>
+		</div>
+
+	<div id="top_1"><script>genBar('Total AIDS new cases','2007');</script></div>
+
+</body>
+
+
+</html>
