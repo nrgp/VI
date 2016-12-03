@@ -4,6 +4,9 @@ var maxValue = -100000, minValue = 100000;
 var valueHash = {};
 var updatevalue;
 var updateBars;
+var clickado = "false" ;
+var dispatch = d3.dispatch("CountryEnter");
+var selectedCountry;
 
 function changeYear(year){
   _year = year;
@@ -249,6 +252,35 @@ updatevalue = function(){
                 $(this).attr("fill-opacity", "1.0");
                 $("#tooltip-container").hide();
             })
+
+        .on("click", function(d) {
+          if(clickado == "true"){
+            clickado = "false";
+            svg.select("path[title=\'" + d.properties.name+ "\']")
+            .transition()
+            .duration(100)
+            .attr("fill", colormap);
+          }
+          else{
+            clickado = "true";
+            svg.select("path[title=\'" + d.properties.name+ "\']")
+          .transition()
+          .duration(100)
+          .attr("fill", "#ff0000");
+          }
+        })
+/*
+        dispatch.call("CountryEnter",d,d);});
+
+        dispatch.on("CountryEnter.map", function(country){
+          if (selectedCountry != null){
+            selectedCountry.attr("fill", colormap);
+          }
+          selectedCountry = d3.select("path[title=\'" + d.properties.name+ "\'");
+          selectedCountry.attr("fill", "#ff0000");
+        })
+*/
+         
     
     g.append("path")
         .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
@@ -406,8 +438,8 @@ function genBar(variavel,year){
                       .attr("x", function(d) { return x(d.value); })
                       .attr("y", function(d) { return y(d.label); })
                       .attr("width", function(d) { return width-x(d.value); })
-                      .attr("height", y.rangeBand());
-
+                      .attr("height", y.rangeBand())
+                      
               bar
                       .on("mousemove", function(d){
                           div.style("left", d3.event.pageX-750+"px");
@@ -423,6 +455,26 @@ function genBar(variavel,year){
                           div.style("display", "none");
                       });
 
+              bar
+                      .on("click",  function(d) {
+                        console.log("devo pintar vemelho")
+                          if(clickado == "true"){
+                            clickado = "false";
+                            bar.attr("x", function(d) { return x(d.value); })
+                              //.attr("y", function(d) { return y(d.label); })
+                              //.attr("width", function(d) { return width-x(d.value); })
+                              //.attr("height", y.rangeBand())                            
+                              .style("fill", "steelblue");
+                          }
+                          else{
+                            clickado = "true";
+                            bar.attr("x", function(d) { return x(d.value); })
+                              //.attr("y", function(d) { return y(d.label); })
+                              //.attr("width", function(d) { return width-x(d.value); })
+                              //.attr("height", y.rangeBand())                            
+                              .style("fill", "steelblue");
+                          }
+                        })
 
               // removed data:
               bar.exit().remove();
