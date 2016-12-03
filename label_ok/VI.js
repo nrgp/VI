@@ -3,10 +3,12 @@ var _year = '2007';
 var maxValue = -100000, minValue = 100000;
 var valueHash = {};
 var updatevalue;
+var updateBars;
 
 function changeYear(year){
   _year = year;
   updatevalue();
+  updateBars();
   //colormap(d);
   //genmap(_variable,_year);
   //genBar(_variable,_year);
@@ -15,6 +17,7 @@ function changeYear(year){
 function changeVariable(variavel){
   _variable = variavel;
   updatevalue();
+  updateBars();
       //genmap(_variable,_year);
       //genBar(_variable,_year);
 }
@@ -124,7 +127,7 @@ d3.csv("aidsdata_2.csv", function(err, data) {
   
   var graticule = d3.geo.graticule();
    
-  d3.select("svg").remove();
+  //d3.select("svg").remove();
   var svg = d3.select("#canvas-svg").append("svg")
       .attr("width", width)
       .attr("height", height);
@@ -272,8 +275,8 @@ function genBar(variavel,year){
        d3.csv("aidsdata_2.csv", function(err, data) {
             
 
-        var valueHash = {};
-        var maxValue = -100000, minValue = 100000;
+        //var valueHash = {};
+        //var maxValue = -100000, minValue = 100000;
 
         data.forEach(function(d) {
           d.Date = +d.Date;
@@ -297,6 +300,38 @@ function genBar(variavel,year){
       for (i=0; i<= nrpaises; i++){
           datasetSort[i]=datasetTotal[nrpaises-i];
           //console.log(datasetSort[i]);
+      }
+
+    updateBars = function(){
+      console.log(_variable)
+        console.log("entrei")
+        valueHash = {};
+        datasetSort = {};
+        datasetTotal=[];
+        data.forEach(function(d) {
+          d.Date = +d.Date;
+          d.Value = +d.Value;
+          if (d.Date == _year && d.variable == _variable){
+            valueHash[d.location] = +d.Value;
+          }
+        });
+       for (var location in valueHash)
+         datasetTotal.push({label:location, value:+valueHash[location]})
+
+        datasetTotal.sort(function(a, b) {
+          return a.value < b.value
+      })
+        console.log(datasetSort)
+        var i = 0;
+        var nrpaises = 10;
+        var datasetSort = [];
+
+        for (i=0; i<= nrpaises; i++){
+            datasetSort[i]=datasetTotal[nrpaises-i];
+            //console.log(datasetSort[i]);
+        }
+        console.log(datasetSort);
+        change(datasetSort);
       }
 
           var margin = {top: (parseInt(d3.select('#top_1').style('height'), 10)/20), right: (parseInt(d3.select('#top_1').style('width'), 10)/20), bottom: (parseInt(d3.select('#top_1').style('height'), 10)/20), left: (parseInt(d3.select('#top_1').style('width'), 10)/5)},
@@ -394,7 +429,7 @@ function genBar(variavel,year){
 
               // updated data:
               bar.transition()
-                      .duration(750)
+                      .duration(1000)
                       .attr("x", function(d) { return 0; })
                       .attr("y", function(d) { return y(d.label); })
                       .attr("width", function(d) { return x(d.value); })
