@@ -1,16 +1,22 @@
-var _variable = 'Total AIDS incidence';
+var _variable = 'Total AIDS-related deaths (year)';
 var _year = '2007';
+var maxValue = -100000, minValue = 100000;
+var valueHash = {};
+var updatevalue;
 
 function changeYear(year){
   _year = year;
-  genmap(_variable,_year);
-  genBar(_variable,_year);
+  updatevalue();
+  //colormap(d);
+  //genmap(_variable,_year);
+  //genBar(_variable,_year);
 }
 
 function changeVariable(variavel){
-      _variable = variavel;
-      genmap(_variable,_year);
-      genBar(_variable,_year);
+  _variable = variavel;
+  updatevalue();
+      //genmap(_variable,_year);
+      //genBar(_variable,_year);
 }
 
 
@@ -95,24 +101,18 @@ d3.csv("aidsdata_2.csv", function(err, data) {
     colors.push(new Color(r, g, b));
   }
 
-  var valueHash = {};
-  var maxValue = -100000, minValue = 100000;
-
-  function updatevalue(){
-     data.forEach(function(d) {
-   // d.Date = +d.Date;
-   // d.Value = +d.Value;
-    if (d.Date == year && d.variable == variavel){
-      valueHash[d.location] = +d.Value;
-      if (+d.Value > maxValue){maxValue = +d.Value;}
-      if (+d.Value < minValue){minValue = +d.Value;}
-    }
-  });}
- 
-
   
-//  var MAP_KEY = config.data0;
-//  var MAP_VALUE = config.data1;
+  valueHash = {};
+    
+    data.forEach(function(d) {
+      d.Date = +d.Date;
+      d.Value = +d.Value;
+      if (d.Date == _year && d.variable == _variable){
+        valueHash[d.location] = +d.Value;
+        if (+d.Value > maxValue){maxValue = +d.Value;}
+        if (+d.Value < minValue){minValue = +d.Value;}
+      }
+    })  
   
   var projection = d3.geo.mercator()
       .scale((width + 1) / 2 / Math.PI)
@@ -143,13 +143,13 @@ d3.csv("aidsdata_2.csv", function(err, data) {
       .domain([0, 1.0])
       .range(d3.range(COLOR_COUNTS).map(function(i) { return i }));
   
-  quantize.domain([d3.min(data, function(d){ return d.Value}),d3.max(data, function(d){ return d.Value})]);
-  console.log(d3.min(data, function(d){ return d.Date}));
-  console.log(minValue);
-  console.log(d3.max(data, function(d){ return d.Value}));
+  quantize.domain([minValue,maxValue]);
+  //console.log(d3.min(data, function(d){ return d.Value}));
+  console.log("quantize:"+quantize.domain());
+  //console.log(d3.max(data, function(d){ return d.Value}));
   console.log(maxValue);
 
-  d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, world) {
+  d3.json("world-topo-min.json", function(error, world) {
     var countries = topojson.feature(world, world.objects.countries).features;
   
     svg.append("path")
@@ -167,6 +167,8 @@ d3.csv("aidsdata_2.csv", function(err, data) {
     var country = g.selectAll(".country").data(countries);
   
 function colormap(d){
+ // console.log(d);
+
   if (valueHash[d.properties.name]) {
             var c = quantize((valueHash[d.properties.name]));
             var color = colors[c].getColors();
@@ -177,12 +179,36 @@ function colormap(d){
           }
 }
 
+updatevalue = function(){
+    console.log("entrei")
+    valueHash = {};
+    maxValue = -100000, minValue = 100000;
+    
+    data.forEach(function(d) {
+
+      d.Date = +d.Date;
+      d.Value = +d.Value;
+      if (d.Date == _year && d.variable == _variable){
+        valueHash[d.location] = +d.Value;
+        //console.log(d.Value)
+        if (+d.Value > maxValue){maxValue = +d.Value; console.log("maxValue:"+maxValue)}
+        if (+d.Value < minValue){minValue = +d.Value; console.log("minValue:"+minValue)}
+      }})
+      console.log("updatevalue");
+      console.log(_year);
+      console.log(minValue);
+      console.log(maxValue);
+      quantize.domain([minValue,maxValue])
+      console.log("quantize_2:"+quantize.domain())
+      svg.selectAll("path[class=country]").attr("fill", colormap);
+}
+
     country.enter().insert("path")
         .attr("class", "country")
         .attr("d", path)
         .attr("id", function(d,i) { return d.id; })
         .attr("title", function(d) { return d.properties.name; })
-        .style("fill", colormap)
+        .attr("fill", colormap)
 
         .on("mousemove", function(d) {
             var html = "";
@@ -213,7 +239,7 @@ function colormap(d){
               var tooltip_width = $("#tooltip-container").width();
               d3.select("#tooltip-container")
                 .style("top", (d3.event.layerY + 15) + "px")
-                .style("left", (d3.event.layerX ) + "px");
+                .style("left", d3.event.layerX + "px");
             }
         })
         .on("mouseout", function() {
@@ -252,7 +278,7 @@ function genBar(variavel,year){
         data.forEach(function(d) {
           d.Date = +d.Date;
           d.Value = +d.Value;
-          if (d.Date == year && d.variable == variavel){
+          if (d.Date == _year && d.variable == _variable){
             valueHash[d.location] = +d.Value;
           }
         });
@@ -270,7 +296,7 @@ function genBar(variavel,year){
 
       for (i=0; i<= nrpaises; i++){
           datasetSort[i]=datasetTotal[nrpaises-i];
-          console.log(datasetSort[i]);
+          //console.log(datasetSort[i]);
       }
 
           var margin = {top: (parseInt(d3.select('#top_1').style('height'), 10)/20), right: (parseInt(d3.select('#top_1').style('width'), 10)/20), bottom: (parseInt(d3.select('#top_1').style('height'), 10)/20), left: (parseInt(d3.select('#top_1').style('width'), 10)/5)},
@@ -350,10 +376,10 @@ function genBar(variavel,year){
               bar
                       .on("mousemove", function(d){
                           div.style("left", d3.event.pageX-750+"px");
-                          console.log("isto aqui");
-                          console.log(d3.event.pageX);
+                          //console.log("isto aqui");
+                          //console.log(d3.event.pageX);
                           div.style("top", d3.event.pageY-100+"px");
-                          console.log(d3.event.pageY);
+                          //console.log(d3.event.pageY);
                           div.style("display", "inline-block");
                           div.html((d.label)+"<br>"+(d.value));
                       });
