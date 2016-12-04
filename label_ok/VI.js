@@ -11,7 +11,7 @@ var selectedCountry;
 d3.csv("aidsdata_2.csv", function (data) {
     genmap(data);
     genBar(data);
-})
+});
 
 function changeYear(year){
   _year = year;
