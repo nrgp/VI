@@ -256,14 +256,14 @@ updatevalue = function(){
         .on("click", function(d) {
           if(clickado == "true"){
             clickado = "false";
-            svg.select("path[title=\'" + d.properties.name+ "\']")
+            svg.select("path[id=\'" + d.id+ "\']")
             .transition()
             .duration(100)
             .attr("fill", colormap);
           }
           else{
             clickado = "true";
-            svg.select("path[title=\'" + d.properties.name+ "\']")
+            svg.select("path[id=\'" + d.id+ "\']")
           .transition()
           .duration(100)
           .attr("fill", "#ff0000");
@@ -460,19 +460,11 @@ function genBar(variavel,year){
                         console.log("devo pintar vemelho")
                           if(clickado == "true"){
                             clickado = "false";
-                            bar.attr("x", function(d) { return x(d.value); })
-                              //.attr("y", function(d) { return y(d.label); })
-                              //.attr("width", function(d) { return width-x(d.value); })
-                              //.attr("height", y.rangeBand())                            
-                              .style("fill", "steelblue");
+                            bar.style("fill", "steelblue");
                           }
                           else{
                             clickado = "true";
-                            bar.attr("x", function(d) { return x(d.value); })
-                              //.attr("y", function(d) { return y(d.label); })
-                              //.attr("width", function(d) { return width-x(d.value); })
-                              //.attr("height", y.rangeBand())                            
-                              .style("fill", "steelblue");
+                            bar.style("fill", "#ff0000");
                           }
                         })
 
