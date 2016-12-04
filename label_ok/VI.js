@@ -8,6 +8,11 @@ var clickado = "false" ;
 var dispatch = d3.dispatch("CountryEnter");
 var selectedCountry;
 
+d3.csv("aidsdata_2.csv", function (data) {
+    genmap(data);
+    genBar(data);
+})
+
 function changeYear(year){
   _year = year;
   updatevalue();
@@ -28,9 +33,8 @@ function changeVariable(variavel){
 
 
 
-function genmap(variavel,year){
+function genmap(data){
 
-d3.csv("aidsdata_2.csv", function(err, data) {
   var config = {"color0":"#99ccff","color1":"#0050A1",
               "width":700,"height":500}
   
@@ -291,7 +295,6 @@ updatevalue = function(){
   });
   
   d3.select(self.frameElement).style("height", (height * 2.3 / 3) + "px");
-});
 
 }
 
@@ -299,16 +302,10 @@ function showVal(newVal){
   document.getElementById("valBox").innerHTML=newVal;
 }
 
-function genBar(variavel,year){
+function genBar(data){
 
-      d3.select("svg").remove();
+      //d3.select("svg").remove();
       var datasetTotal = [];
-
-       d3.csv("aidsdata_2.csv", function(err, data) {
-            
-
-        //var valueHash = {};
-        //var maxValue = -100000, minValue = 100000;
 
         data.forEach(function(d) {
           d.Date = +d.Date;
@@ -478,11 +475,6 @@ function genBar(variavel,year){
                       .attr("y", function(d) { return y(d.label); })
                       .attr("width", function(d) { return x(d.value); })
                       .attr("height", y.rangeBand());
-
           };
-
-
-
-      });
 
 }
