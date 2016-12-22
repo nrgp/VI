@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<title>AIDS 2000-2014</title>
+	<script src="d3.v4.min.js" charset="utf-8"></script>
+	<script src="d3.min.js"></script>
+	<script src="topojson.min.js"></script>
+	<script src="jquery.min.js"></script>
+	<script src="VI.js"></script>
+	<link rel="stylesheet" type="text/css" href="VI.css" />
+</head>
+<body>
+	<center><h1>AIDS 2000-2014</h1></center>
+	
+
+	<div id="top_button">
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS new cases')">New cases</button>
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS-related deaths (year)')">Related-deaths</button>
+		<button type="button" class="btn" onclick="changeVariable('Total AIDS incidence')">Incidence</button>
+		<div id="tratamento"><button  type="button" class="btn" onclick="changeVariable('Treatment')">Treatment</button></div>
+	</div>
+
+	<div id="canvas-svg"></div>
+	<div id="tooltip-container"></div>
+		<div id="canvas-buttom"><input type="range" id="myRange"  min="2000" max="2014" step="1" value="2000" oninput="showVal(this.value)" onchange="showVal(this.value); changeYear(this.value);">
+			<span id="valBox">2000</span>
+			<button type="button" class="btn_2" onclick="myVar = setInterval(function() {changeYearPlay(); }, 3000)"><img src="play.png"></button>
+			<button type="button" class="btn_3" onclick="clearInterval(myVar)"><img src="pause.png"></button>
+			<button type="button" class="btn_4" onclick="changeYear(2015);">2000-2014</button>
+		</div>
+	<div id="top_1">
+		<span id="top1Chart"></span>
+		<button type="button" class="btn_6" onclick="changeTop()"><img src="_top.png"></button>
+	</div>
+
+	<input type="text" id="input_2" list="languages" placeholder="e.g. Portugal" >
+	
+<datalist id="languages">
+  </datalist>
+  <div id="bottom_1">
+  	<span id="bottom_1Chart"></span>
+  </div>
+  <div id="bottom_2">
+    	<span id="bottom_2Chart"></span>
+
+  	<div id='titulo'>Knowledge about HIV prevention in young people</div>
+  	<select  id='seleciona' onchange="mudaVar()">
+			  <option value="Knowledge">Knowledge about HIV prevention in young people</option>
+			  <option value="Risk">Risk Behaviours</option>
+	</select>
+	<div id='btns' display='none'>
+	<button type="button" class="btn_5_1" onclick="changeVariable2('Total multiple sexual partnership')" type="button">Multiple Sexual Partnership</button>
+	<button type="button" class="btn_5_2" onclick="changeVariable2('Total people inject drugs')" type="button">People inject drugs</button>
+	<button type="button" class="btn_5_3" onclick="changeVariable2('Total sex workers AIDS prevalence')" type="button">Sex workers</button>
+	</div>
+</div>
+
+
+
+</body>
+
+
+</html>

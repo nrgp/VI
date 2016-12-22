@@ -1,9 +1,13 @@
 var _variable = 'Total AIDS-related deaths (year)';
-var _year = '2007';
+var _year = '2000';
+var _variable_cdp = 'Total AIDS-related deaths 2015';
+var _year_cdp = '2015';
 var maxValue = -100000, minValue = 100000;
 var valueHash = {};
+var valueHash_cdp = {};
 var updatevalue;
 var updateBars;
+var updateBubbles;
 var clickado = "false" ;
 var dispatch = d3.dispatch('countryEnter');
 var selectedCountry;
@@ -12,48 +16,163 @@ var newUpdateCDP;
 var valueFormat;
 var bar_click;
 var colormap;
-
+var _variable2 = 'Knowledge about HIV prevention in young people';
+var _top = 'menos';
 
 var myVar;
- 
+
+
+function changeTop(){
+  if (_top == 'mais') {
+      _top = 'menos';
+    }
+  else {
+      _top = 'mais';
+  }
+  newUpdate();
+}
+
+
 function changeYearPlay(){
-    console.log('Old->'+_year);
+
   var a = parseInt(_year);
   a= a + 1;
   if (a>2014){
     clearInterval(myVar);
   }
   else{
-      console.log('New->'+a);
+
       changeYear('' + a);
       document.getElementById('myRange').value= a;
       document.getElementById('valBox').innerHTML = a;
     }
   }
 
+  function mudaVar(){
+    var x = document.getElementById("seleciona").value;
+    if (x == 'Knowledge'){
+      _variable2 = "Knowledge about HIV prevention in young people";
+          document.getElementById('titulo').innerHTML = _variable2;
+      btns.style.display = 'none';
+
+    }
+    if (x == 'Risk'){
+      _variable2 = "Total multiple sexual partnership";
+      btns.style.display = 'inline';
+          document.getElementById('titulo').innerHTML = _variable2;
+      }
+    updateBubbles();
+
+  }      
+
+function changeVariable2(var1){
+    _variable2 = var1 ;
+    document.getElementById('titulo').innerHTML = _variable2;
+    updateBubbles();
+}
+
+
+
 d3.csv("aidsdata_2.csv", function (data) {
+    bottom_2.style.display = 'none';
+    bottom_1.style.display = 'inline';
+    btns.style.display = 'none';
+    tratamento.style.display = 'inline';
+          document.getElementById('top1Chart').innerHTML = _variable + " " +_year + " ";
+          document.getElementById('bottom_1Chart').innerHTML = _variable + " " + "2000-2014";
     genmap(data);
-    $("#default").on('input',function(e){
-     console.log($(this).val());
-    });
     genBarScroll(data);
     genCDotPlot(data);
     createSearch(data);
+    genBubble(data);
 });
 
 function changeYear(year){
-  _year = year;
+  _year = +year;
+  if (_variable == 'Treatment'){
   updatevalue();
-  //updateBars();
+  return;
+
+  }
+      document.getElementById('top1Chart').innerHTML = _variable + " " +_year + " ";
+                document.getElementById('bottom_1Chart').innerHTML = _variable + " " + "2000-2014";
+    tratamento.style.display = 'inline';
+  if (year == 2015){
+     tratamento.style.display = 'none';
+    if (_variable == 'Total AIDS-related deaths (year)'){
+    _variable = 'Total AIDS-related deaths 2015';
+    }
+    if (_variable == 'Total AIDS new cases'){
+    _variable = 'Total AIDS new cases 2015';
+    }
+    if (_variable == 'Total AIDS incidence'){
+    _variable = 'Total AIDS incidence 2015';
+    }
+    }
+  if (_year != 2015){
+    if (_variable == 'Total AIDS-related deaths 2015'){
+    _variable = 'Total AIDS-related deaths (year)';
+    }
+    if (_variable == 'Total AIDS new cases 2015'){
+    _variable = 'Total AIDS new cases';
+    }
+    if (_variable == 'Total AIDS incidence 2015'){
+    _variable = 'Total AIDS incidence';
+    }
+  }
+    
+  
+  updatevalue();
   newUpdate();
   newUpdateCDP();
-  //colormap(d);
-  //genmap(_variable,_year);
-  //genBar(_variable,_year);
+  updateBubbles();
 }
 
 function changeVariable(variavel){
   _variable = variavel;
+    document.getElementById('top1Chart').innerHTML = _variable + " " +_year + " ";
+          document.getElementById('bottom_1Chart').innerHTML = _variable + " " + "2000-2014";
+
+  if (variavel == 'Total AIDS new cases') {
+    _variable_cdp = 'Total AIDS new cases 2015';
+         top_1.style.display = 'inline';
+    bottom_1.style.display = 'none';
+    bottom_2.style.display = 'inline';
+
+  }
+  if (variavel == 'Total AIDS incidence') {
+    _variable_cdp = 'Total AIDS incidence 2015';
+     top_1.style.display = 'inline';
+    bottom_2.style.display = 'none';
+    bottom_1.style.display = 'inline';
+
+  } if (variavel == 'Total AIDS-related deaths (year)') {
+    _variable_cdp = 'Total AIDS-related deaths 2015';
+     top_1.style.display = 'inline';
+    bottom_2.style.display = 'none';
+    bottom_1.style.display = 'inline';
+  }
+
+  if (variavel == 'Treatment') {
+    top_1.style.display = 'none';
+    bottom_2.style.display = 'none';
+    bottom_1.style.display = 'none';
+    updatevalue();
+    return;
+  }
+
+  if (_year == 2015){
+    if (_variable == 'Total AIDS-related deaths (year)'){
+    _variable = 'Total AIDS-related deaths 2015';
+    }
+    if (_variable == 'Total AIDS new cases'){
+    _variable = 'Total AIDS new cases 2015';
+    }
+    if (_variable == 'Total AIDS incidence'){
+    _variable = 'Total AIDS incidence 2015';
+    }
+  }
+
   updatevalue();
   //updateBars();
   newUpdate();
@@ -72,14 +191,11 @@ function createSearch(data){
       }
     })  ;
 
-  $("#default").on('input',function(e){
+  $("#input_2").on('input',function(e){
          dispatch.countryEnter(($(this).val()), e);
    });
   
 document.getElementById('languages').innerHTML = options;
-console.log(
-    document.getElementById('default').value);
-
 }
 
 
@@ -168,12 +284,18 @@ function genmap(data){
     
     data.forEach(function(d) {
       d.Date = +d.Date;
-      d.Value = +d.Value;
       if (d.Date == _year && d.variable == _variable){
-        valueHash[d.location] = +d.Value;
-        if (+d.Value > maxValue){maxValue = +d.Value;}
-        if (+d.Value < minValue){minValue = +d.Value;}
-      }
+             if (_variable ==  'Treatment' && d.Value == 1){
+              valueHash[d.location] = +10;
+             maxValue = 10; 
+             minValue = 0;
+
+        }
+        else{
+          valueHash[d.location] = +d.Value;
+          if (+d.Value > maxValue){maxValue = +d.Value;}
+          if (+d.Value < minValue){minValue = +d.Value;}
+      }}
     })  
   
   var projection = d3.geo.mercator()
@@ -206,10 +328,6 @@ function genmap(data){
       .range(d3.range(COLOR_COUNTS).map(function(i) { return i }));
   
   quantize.domain([minValue,maxValue]);
-  //console.log(d3.min(data, function(d){ return d.Value}));
-  console.log("quantize:"+quantize.domain());
-  //console.log(d3.max(data, function(d){ return d.Value}));
-  console.log(maxValue);
 
   d3.json("world-topo-min.json", function(error, world) {
     var countries = topojson.feature(world, world.objects.countries).features;
@@ -229,7 +347,6 @@ function genmap(data){
     var country = g.selectAll(".country").data(countries);
   
 colormap = function(d){
- // console.log(d);
 
   if (valueHash[d.properties.name]) {
             var c = quantize((valueHash[d.properties.name]));
@@ -242,47 +359,38 @@ colormap = function(d){
 }
 
 updatevalue = function(){
-    console.log("entrei")
+
     valueHash = {};
     maxValue = -100000, minValue = 100000;
     
     data.forEach(function(d) {
-
       d.Date = +d.Date;
-      d.Value = +d.Value;
       if (d.Date == _year && d.variable == _variable){
-        valueHash[d.location] = +d.Value;
-        //console.log(d.Value)
-        if (+d.Value > maxValue){maxValue = +d.Value; console.log("maxValue:"+maxValue)}
-        if (+d.Value < minValue){minValue = +d.Value; console.log("minValue:"+minValue)}
-      }})
-      console.log("updatevalue");
-      console.log(_year);
-      console.log(minValue);
-      console.log(maxValue);
+        if (d.variable ==  'Treatment' ){
+          if( d.Value == 1 ){
+            valueHash[d.location] = +10000;
+             maxValue = 10000; 
+             minValue = 0;
+           }
+        }
+        else{
+              valueHash[d.location] = +d.Value;
+              if (+d.Value > maxValue){maxValue = +d.Value;}
+              if (+d.Value < minValue){minValue = +d.Value; }
+        }
+      }
+    })
       quantize.domain([minValue,maxValue])
-      console.log("quantize_2:"+quantize.domain())
       svg.selectAll("path[class=country]").attr("fill", colormap);
 }
 
-aa = [-122.490402, 37.786453];
-  //bb = [-122.389809, 37.72728];
-
-svg.selectAll("circle")
-    .data([aa]).enter()
-    .append("circle")
-    .attr("cx", function (d) { console.log(projection(d)); return projection(d)[0]; })
-    .attr("cy", function (d) { return projection(d)[1]; })
-    .attr("r", "2px")
-    .attr("fill", "red");
-    
     country.enter().insert("path")
         .attr("class", "country")
         .attr("d", path)
         .attr("id", function(d,i) { return d.id; })
         .attr("title", function(d) { return d.properties.name; })
         .attr("fill", colormap)
-        .attr("cx", function (d) { console.log(projection(d)); return projection(d)[1]; })
+        .attr("cx", function (d) { return projection(d)[1]; })
 
         .on("mousemove", function(d) {
             var html = "";
@@ -292,7 +400,7 @@ svg.selectAll("circle")
             html += d.properties.name;
             html += "</span>";
             html += "<span class=\"tooltip_value\">";
-           // console.log(valueHash);
+ 
             html += (valueHash[d.properties.name] ? valueFormat(valueHash[d.properties.name]) : "");
             html += "";
             html += "</span>";
@@ -323,7 +431,6 @@ svg.selectAll("circle")
             })
 
         .on("click", function(d) {
-          console.log(d);
           dispatch.countryEnter(d.properties.name, d);
         });       
     
@@ -344,27 +451,7 @@ function showVal(newVal){
 }
 
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function genBarScroll(data) {
-
  
   valueHash = {};
   datasetTotal = [];
@@ -374,7 +461,7 @@ function genBarScroll(data) {
       d.Value = +d.Value;
       if (d.Date == _year && d.variable == _variable){
         valueHash[d.location] = +d.Value;
-        console.log(1);
+
         if (+d.Value > maxValue){maxValue = +d.Value;}
         if (+d.Value < minValue){minValue = +d.Value;}
       }
@@ -387,12 +474,22 @@ function genBarScroll(data) {
          datasetTotal.push({key:i ,country:location, value:+valueHash[location]})
         i = i +1;
      }
-  datasetTotal.sort(function(a, b) {
+
+  sortBar = function(){
+    datasetTotal.sort(function(a, b) {
+      if(_top == 'menos'){
           return a.value < b.value;
+      }
+      else {
+        return a.value > b.value;
+      }
     })
+  }
  
+  sortBar();
+
     newUpdate = function(){
-      console.log("Entrei newUpdate")
+ 	maxValue = -100000, minValue = 100000;
       valueHash = {};
       datasetTotal = [];
      
@@ -401,41 +498,25 @@ function genBarScroll(data) {
         d.Value = +d.Value;
         if (d.Date == _year && d.variable == _variable){
           valueHash[d.location] = +d.Value;
-          //console.log(1);
+
           if (+d.Value > maxValue){maxValue = +d.Value;}
           if (+d.Value < minValue){minValue = +d.Value;}
         }
         }
       )
-      console.log(_year)
+
       var i = 0;
       for (var location in valueHash){
            datasetTotal.push({key:i ,country:location, value:+valueHash[location]})
           i = i +1;
        }
-      datasetTotal.sort(function(a, b) {
-            return a.value < b.value;
-      })
-      console.log("datasetTotal:")
-      console.log(datasetTotal)
+
+       sortBar();
+
       updateScales();
   }
 
-    console.log(datasetTotal)
-    //data = datasetTotal;
- 
-     //d3.csv("aidsdata_3.csv", function (data) {
- 
-    //Create the random data
-    /*for (var i = 0; i < 244; i++) {
-      var my_object = {};
-      my_object.key = i;
-      my_object.country = makeWord();
-      my_object.value = Math.floor(Math.random() * 600);
-      data.push(my_object);
-    }//for i
-    data.sort(function(a,b) { return b.value - a.value; });
-*/
+
     /////////////////////////////////////////////////////////////
     ///////////////// Set-up SVG and wrappers ///////////////////
     /////////////////////////////////////////////////////////////
@@ -446,10 +527,10 @@ function genBarScroll(data) {
  
     var main_margin = {top: 10, right: 10, bottom: 30, left: 100},
         main_width = 350 - main_margin.left - main_margin.right,
-        main_height = 250 - main_margin.top - main_margin.bottom;
+        main_height = 229 - main_margin.top - main_margin.bottom;
  
     var mini_margin = {top: 10, right: 10, bottom: 30, left: 10},
-        mini_height = 350 - mini_margin.top - mini_margin.bottom;
+        mini_height = 234 - mini_margin.top - mini_margin.bottom;
     mini_width = 100 - mini_margin.left - mini_margin.right;
  
     svg = d3.select("#top_1").append("svg")
@@ -639,7 +720,7 @@ function genBarScroll(data) {
       .attr("width", function(d) { return mini_xScale(d.value); })
       .attr("y", function(d,i) { return mini_yScale(d.country); })
       .attr("height", mini_yScale.rangeBand())
-      .style("fill", "steelblue");
+      .style("fill", "orange");
  
     //EXIT
     mini_bar.exit()
@@ -670,8 +751,7 @@ function genBarScroll(data) {
       .attr("width", function(d) { return mini_xScale(d.value); })
       .attr("y", function(d,i) { return mini_yScale(d.country); })
       .attr("height", mini_yScale.rangeBand())
-      .style("fill", "steelblue");
- 
+
     //EXIT
     mini_bar.exit()
       .remove();
@@ -716,7 +796,8 @@ function genBarScroll(data) {
     bar.enter().append("rect")
       .attr("key", function(d) { return d.country; })
       .attr("class", "bar")
-      .style("fill", "steelblue")
+      .style("fill", "orange")
+      .style("stroke", "black")
       .attr("x", 0)
       .attr("width", function(d) { return main_xScale(d.value); })
       .attr("y", function(d,i) { return main_yScale(d.country); })
@@ -732,8 +813,6 @@ function genBarScroll(data) {
             html += d.country;
             html += "</span>";
             html += "<span class=\"tooltip_value\">";
-            console.log("QUERO VER ISTO")
-            console.log(d.country)
             html += valueFormat(d.value);
             html += "";
             html += "</span>";
@@ -787,7 +866,7 @@ function genBarScroll(data) {
       .filter(function(d) { return (extent[0] - mini_yScale.rangeBand() + 1e-2 <= mini_yScale(d)) && (mini_yScale(d) <= extent[1] - 1e-2); });
     //Update the colors of the mini chart - Make everything outside the brush grey
     d3.select(".miniGroup").selectAll(".bar")
-      .style("fill", function(d, i) { return selected.indexOf(d.country) > -1 ? "steelblue" : "#e0e0e0"; });
+      .style("fill", function(d, i) { return selected.indexOf(d.country) > -1 ? "orange" : "#e0e0e0"; });
  
     //Update the label size
     d3.selectAll(".y.axis text")
@@ -879,92 +958,62 @@ function genBarScroll(data) {
   }//scroll
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function genCDotPlot(data) {
 
  
-  valueHash = {};
-  datasetTotal = [];
+  valueHash_cdp = {};
+  datasetTotal_cdp = [];
    
     data.forEach(function(d) {
       d.Date = +d.Date;
       d.Value = +d.Value;
-      if (d.Date == _year && d.variable == _variable){
-        valueHash[d.location] = +d.Value;
-        console.log(1);
+      if (d.Date == _year_cdp && d.variable == _variable_cdp){
+        valueHash_cdp[d.location] = +d.Value;
+
         if (+d.Value > maxValue){maxValue = +d.Value;}
         if (+d.Value < minValue){minValue = +d.Value;}
       }
       }
     )
 
-
     var i = 0;
-    for (var location in valueHash){
-         datasetTotal.push({key:i ,country:location, value:+valueHash[location]})
+    for (var location in valueHash_cdp){
+         datasetTotal_cdp.push({key:i ,country:location, value:+valueHash_cdp[location]})
         i = i +1;
      }
-  datasetTotal.sort(function(a, b) {
+  datasetTotal_cdp.sort(function(a, b) {
           return a.value < b.value;
     })
  
     newUpdateCDP = function(){
-      console.log("Entrei newUpdateCDP")
-      valueHash = {};
-      datasetTotal = [];
+
+      valueHash_cdp = {};
+      datasetTotal_cdp = [];
      
       data.forEach(function(d) {
         d.Date = +d.Date;
         d.Value = +d.Value;
-        if (d.Date == _year && d.variable == _variable){
-          valueHash[d.location] = +d.Value;
-          //console.log(1);
+        if (d.Date == _year_cdp && d.variable == _variable_cdp){
+          valueHash_cdp[d.location] = +d.Value;
           if (+d.Value > maxValue){maxValue = +d.Value;}
           if (+d.Value < minValue){minValue = +d.Value;}
         }
         }
       )
-      console.log(_year)
+
       var i = 0;
-      for (var location in valueHash){
-           datasetTotal.push({key:i ,country:location, value:+valueHash[location]})
+      for (var location in valueHash_cdp){
+           datasetTotal_cdp.push({key:i ,country:location, value:+valueHash_cdp[location]})
           i = i +1;
        }
-      datasetTotal.sort(function(a, b) {
+      datasetTotal_cdp.sort(function(a, b) {
             return a.value < b.value;
       })
-      console.log("datasetTotal:")
-      console.log(datasetTotal)
+
       updateScales_cdp();
   }
 
-    console.log(datasetTotal)
-    //data = datasetTotal;
- 
-     //d3.csv("aidsdata_3.csv", function (data) {
- 
-    //Create the random data
-    /*for (var i = 0; i < 244; i++) {
-      var my_object = {};
-      my_object.key = i;
-      my_object.country = makeWord();
-      my_object.value = Math.floor(Math.random() * 600);
-      data.push(my_object);
-    }//for i
-    data.sort(function(a,b) { return b.value - a.value; });
-*/
+
     /////////////////////////////////////////////////////////////
     ///////////////// Set-up SVG and wrappers ///////////////////
     /////////////////////////////////////////////////////////////
@@ -974,11 +1023,11 @@ function genCDotPlot(data) {
         .on("zoom", null);
  
     var main_margin = {top: 10, right: 10, bottom: 30, left: 100},
-        main_width = 350 - main_margin.left - main_margin.right,
+        main_width = 335 - main_margin.left - main_margin.right,
         main_height = 250 - main_margin.top - main_margin.bottom;
  
     var mini_margin = {top: 10, right: 10, bottom: 30, left: 10},
-        mini_height = 350 - mini_margin.top - mini_margin.bottom;
+        mini_height = 245 - mini_margin.top - mini_margin.bottom;
     mini_width = 100 - mini_margin.left - mini_margin.right;
  
     svg = d3.select("#bottom_1").append("svg")
@@ -1060,16 +1109,16 @@ function genCDotPlot(data) {
     /////////////////////////////////////////////////////////////
  
     //Update the scales
-    main_xScale_cdp.domain([0, d3.max(datasetTotal, function(d) { return d.value; })]);
-    mini_xScale_cdp.domain([0, d3.max(datasetTotal, function(d) { return d.value; })]);
-    main_yScale_cdp.domain(datasetTotal.map(function(d) { return d.country; }));
-    mini_yScale_cdp.domain(datasetTotal.map(function(d) { return d.country; }));
+    main_xScale_cdp.domain([0, d3.max(datasetTotal_cdp, function(d) { return d.value; })]);
+    mini_xScale_cdp.domain([0, d3.max(datasetTotal_cdp, function(d) { return d.value; })]);
+    main_yScale_cdp.domain(datasetTotal_cdp.map(function(d) { return d.country; }));
+    mini_yScale_cdp.domain(datasetTotal_cdp.map(function(d) { return d.country; }));
    
   function updateScales_cdp() {
-    main_xScale_cdp.domain([0, d3.max(datasetTotal, function(d) { return d.value; })]);
-    mini_xScale_cdp.domain([0, d3.max(datasetTotal, function(d) { return d.value; })]);
-    main_yScale_cdp.domain(datasetTotal.map(function(d) { return d.country; }));
-    mini_yScale_cdp.domain(datasetTotal.map(function(d) { return d.country; }));
+    main_xScale_cdp.domain([0, d3.max(datasetTotal_cdp, function(d) { return d.value; })]);
+    mini_xScale_cdp.domain([0, d3.max(datasetTotal_cdp, function(d) { return d.value; })]);
+    main_yScale_cdp.domain(datasetTotal_cdp.map(function(d) { return d.country; }));
+    mini_yScale_cdp.domain(datasetTotal_cdp.map(function(d) { return d.country; }));
 
     updateDots();
     updateMiniDots();
@@ -1095,11 +1144,11 @@ function genCDotPlot(data) {
     /////////////////////////////////////////////////////////////
  
     //What should the first extent of the brush become - a bit arbitrary this
-    var brushExtent_cdp = Math.max( 1, Math.min( 10, Math.round(datasetTotal.length*0.2) ) );
+    var brushExtent_cdp = Math.max( 1, Math.min( 10, Math.round(datasetTotal_cdp.length*0.2) ) );
  
     brush_cdp = d3.svg.brush()
         .y(mini_yScale_cdp)
-        .extent([mini_yScale_cdp(datasetTotal[0].country), mini_yScale_cdp(datasetTotal[brushExtent_cdp].country)])
+        .extent([mini_yScale_cdp(datasetTotal_cdp[0].country), mini_yScale_cdp(datasetTotal_cdp[brushExtent_cdp].country)])
         .on("brush", brushmove_cdp)
         //.on("brushend", brushend);
  
@@ -1152,7 +1201,7 @@ function genCDotPlot(data) {
     //The mini brushable bar
     //DATA JOIN
     var mini_bar_cdp = d3.select(".miniGroup_cdp").selectAll(".dot")
-      .data(datasetTotal, function(d) { return d.key; });
+      .data(datasetTotal_cdp, function(d) { return d.key; });
  
     //UDPATE
     mini_bar_cdp
@@ -1169,7 +1218,7 @@ function genCDotPlot(data) {
       .attr("r", 2)
       .attr("cx", function(d) { return mini_xScale_cdp(d.value); })
       .attr("cy", function(d,i) { return mini_yScale_cdp(d.country); })
-     .style("fill", "steelblue");
+     .style("fill", "orange");
  
     //EXIT
     mini_bar_cdp.exit()
@@ -1177,7 +1226,7 @@ function genCDotPlot(data) {
  
   function updateMiniDots(){
     mini_bar_cdp = d3.select(".miniGroup_cdp").selectAll(".dot")
-      .data(datasetTotal, function(d) { return d.key; });
+      .data(datasetTotal_cdp, function(d) { return d.key; });
  
     //UDPATE
     mini_bar_cdp
@@ -1203,7 +1252,8 @@ function genCDotPlot(data) {
       .attr("cx", function(d) { return mini_xScale_cdp(d.value); })
       .attr("cy", function(d,i) { return mini_yScale_cdp(d.country); })
      // .attr("height", mini_yScale_cdp.rangeBand())
-      .style("fill", "steelblue");
+      .style("fill", "orange")
+      .style("stroke", "black");
  
     //EXIT
     mini_bar_cdp.exit()
@@ -1224,7 +1274,7 @@ function genCDotPlot(data) {
  
     //DATA JOIN
     var bar_cdp = d3.select(".mainGroup_cdp").selectAll(".dot")
-        .data(datasetTotal, function(d) { return d.key; });
+        .data(datasetTotal_cdp, function(d) { return d.key; });
  
     //UPDATE
     bar_cdp
@@ -1245,7 +1295,7 @@ function genCDotPlot(data) {
       .attr("cy", function(d,i) { return main_yScale_cdp(d.country)+main_yScale_cdp.rangeBand()/1.5; })
       .transition()
       .duration(800)
-     // .attr("height", main_yScale_cdp.rangeBand())
+      .attr("height", main_yScale_cdp.rangeBand())
       
       
  
@@ -1253,7 +1303,8 @@ function genCDotPlot(data) {
     bar_cdp.enter().append("circle")
       .attr("key", function(d) { return d.country; })
       .attr("class", "dot")
-      .style("fill", "steelblue")
+      .style("fill", "orange")
+      .style("stroke", "black")
       .attr("r", main_yScale_cdp.rangeBand()/1.5)
       .attr("cx", function(d) { return main_xScale_cdp(d.value)-5; })
       .attr("cy", function(d,i) { return main_yScale_cdp(d.country)+main_yScale_cdp.rangeBand()/1.5; })
@@ -1269,8 +1320,6 @@ function genCDotPlot(data) {
             html += d.country;
             html += "</span>";
             html += "<span class=\"tooltip_value\">";
-            console.log("QUERO VER ISTO")
-            console.log(d.country)
             html += valueFormat(d.value);
             html += "";
             html += "</span>";
@@ -1301,7 +1350,7 @@ function genCDotPlot(data) {
             })
 
         .on("click",  function(d) {
-          dispatch.countryEnter(d.key, d);
+          dispatch.countryEnter(d.country, d);
         })
  
     //EXIT
@@ -1324,7 +1373,7 @@ function genCDotPlot(data) {
       .filter(function(d) { return (extent_cdp[0] - mini_yScale_cdp.rangeBand() + 1e-2 <= mini_yScale_cdp(d)) && (mini_yScale_cdp(d) <= extent_cdp[1] - 1e-2); });
     //Update the colors of the mini chart - Make everything outside the brush grey
     d3.select(".miniGroup_cdp").selectAll(".dot")
-      .style("fill", function(d, i) { return selected_cdp.indexOf(d.location) > -1 ? "steelblue" : "#e0e0e0"; });
+      .style("fill", function(d, i) { return selected_cdp.indexOf(d.location) > -1 ? "orange" : "#e0e0e0"; });
  
     //Update the label size
     d3.selectAll(".y.axis text")
@@ -1339,7 +1388,7 @@ function genCDotPlot(data) {
     main_yZoom_cdp.domain( extent_cdp );
  
     //Update the domain of the x & y scale of the big bar chart
-    main_yScale_cdp.domain(datasetTotal.map(function(d) { return d.country; }));
+    main_yScale_cdp.domain(datasetTotal_cdp.map(function(d) { return d.country; }));
     main_yScale_cdp.rangeBands( [ main_yZoom_cdp(originalRange_cdp[0]), main_yZoom_cdp(originalRange_cdp[1]) ], 0.4, 0);
  
     //Update the y axis of the big chart
@@ -1349,7 +1398,7 @@ function genCDotPlot(data) {
       .call(main_yAxis_cdp);
  
     //Find the new max of the bars to update the x scale
-    var newMaxXScale_cdp = d3.max(datasetTotal, function(d) { return selected_cdp.indexOf(d.country) > -1 ? d.value : 0; });
+    var newMaxXScale_cdp = d3.max(datasetTotal_cdp, function(d) { return selected_cdp.indexOf(d.country) > -1 ? d.value : 0; });
     main_xScale_cdp.domain([0, newMaxXScale_cdp]);
  
     //Update the x axis of the big chart
@@ -1417,44 +1466,345 @@ function genCDotPlot(data) {
 
 
 
+ function genBubble(data){
+        var valueHash = {};
+        var datasetTotal = [];
+        var valueKnow = {};
+        var maxValue = -100000, minValue = 100000;
+
+    var margin = {top: 20, right: 15, bottom: 60, left: 60}
+      , width = 700 - margin.left - margin.right
+      , height = 250 - margin.top - margin.bottom;
+
+
+      data.forEach(function(d) {
+        d.Date = +d.Date;
+        d.Value = +d.Value;
+        if (d.Date == _year && d.variable == _variable){
+            valueHash[d.location] = +d.Value;
+        }
+        }
+      )
+
+      data.forEach(function(d) {
+        d.Date = +d.Date;
+        d.Value = +d.Value;
+        if (d.Date == _year && d.variable == _variable2){
+            valueKnow[d.location] = +d.Value;
+          if (+d.Value > maxValue){maxValue = +d.Value;}
+          if (+d.Value < minValue){minValue = +d.Value;}
+        }
+        }
+      )
+
+      var i = 0;
+    for (var location in valueHash){
+      if (valueKnow[location] != null){
+         datasetTotal.push({key:i ,country:location, value:+valueHash[location], valueK:+valueKnow[location]})
+        i = i +1;
+      }
+     }
+
+
+  updateBubbles = function () {
+    valueHash = {};
+    datasetTotal = [];
+    valueKnow = {};
+    maxValue = -100000, minValue = 100000;
+
+    data.forEach(function(d) {
+        d.Date = +d.Date;
+        d.Value = +d.Value;
+        if (d.Date == _year && d.variable == _variable){
+            valueHash[d.location] = +d.Value;
+        }
+        }
+      )
+
+    data.forEach(function(d) {
+        d.Date = +d.Date;
+        d.Value = +d.Value;
+        if (d.Date == _year && d.variable == _variable2){
+            valueKnow[d.location] = +d.Value;
+   
+          if (+d.Value > maxValue){maxValue = +d.Value;}
+          if (+d.Value < minValue){minValue = +d.Value;}
+        }
+        }
+      )
+
+    var i = 0;
+    for (var location in valueHash){
+      if (valueKnow[location] != null){
+         datasetTotal.push({key:i ,country:location, value:+valueHash[location], valueK:+valueKnow[location]})
+        i = i +1;
+      }
+     }
+    updateScalesBubbles();
+  }
+
+    var tooltip = d3.select("#bottom_2").append("div")
+            .attr("class", "tooltip_sca")
+            .style("opacity",100);
+    
+    var x = d3.scale.linear()
+              .domain([0, d3.max(data, function(d) { return valueHash[d.location]; })])
+              .range([ 0, width ]);
+    
+    var y = d3.scale.linear()
+            .domain([0, d3.max(data, function(d) { return valueKnow[d.location]; })])
+            .range([ height, 0 ]);
  
+    var chart = d3.select('#bottom_2')
+        .append('svg:svg')
+        .attr('width', width + margin.right + margin.left)
+        .attr('height', height + margin.top + margin.bottom)
+        .attr('class', 'chart')
+
+    var main = chart.append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('class', 'main')   
+        
+    // draw the x axis
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient('bottom');
+
+    main.append('g')
+        .attr('transform', 'translate(0,' + height + ')')
+        .attr('class', 'main axis date')
+        .call(xAxis);
+
+    // text label for the x axis
+  main.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("New Cases");
+
+    // draw the y axis
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient('left');
+
+    main.append('g')
+      .attr('transform', 'translate(0,0)')
+      .attr('class', 'main axis date')
+      .call(yAxis);
+
+  // text label for the y axis
+  main.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "2em");      
+
+    var g = main.append("g"); 
+    
+    g.selectAll("scatter-dots")
+      .data(datasetTotal, function(d) { return d.country; })
+      .enter().append("svg:circle")
+         .attr("key", function(d) { return d.country;})
+          .attr("cy", function (d,i) { return y(d.valueK); } )
+          .attr("cx", function (d) { return x( d.value); } )
+          .attr("r", function (d) { if (_variable2 == 'Knowledge about HIV prevention in young people') {return  d.valueK/7; } else { return 6;} } )
+          .attr("fill", "orange")
+          .attr("stroke", "black")      
+            .on("mouseover", function(d) {
+          var html = "";
+  
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            html += d.country+":";
+            html += "</span>";
+            html += "</div>";
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            if (_variable2 == 'Knowledge about HIV prevention in young people') {
+              html += "Knowledge:";
+            }
+            if (_variable2 == 'Total multiple sexual partnership') {
+              html += "Multiple sexual partnership:";
+            }
+            if (_variable2 == 'Total people inject drugs') {
+              html += "Inject drugs:";
+            }
+            if (_variable2 == 'Total sex workers AIDS prevalence') {
+              html += "Sex workers";
+            }
+            //html += _variable2;
+            //console.log(_variable2);
+            html += "</span>";
+            html += "<span class=\"tooltip_value\">";
+            //console.log("QUERO VER ISTO")
+            //console.log(d.country)
+            html += valueFormat(d.valueK);
+            html += "%";
+            html += "</span>";
+            html += "</div>";
+            
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            html += "New cases:";
+            html += "</span>";
+            html += "<span class=\"tooltip_value\">";
+            html += valueFormat(d.value);
+            html += "";
+            html += "</span>";
+            html += "</div>";
+            
+            $("#tooltip-container").html(html);
+            $(this).attr("fill-opacity", "0.8");
+            $("#tooltip-container").show();
+            
+            var coordinates = d3.mouse(this);
+            
+            var map_width = $('.mainGroupWrapper_cdp')[0].getBoundingClientRect().width;
+            
+            if (d3.event.pageX < map_width / 2) {
+              d3.select("#tooltip-container")
+                .style("top", (d3.event.layerY) + "px")
+                .style("left", (d3.event.layerX) + "px");
+            } else {
+              var tooltip_width = $("#tooltip-container").width();
+              d3.select("#tooltip-container")
+                .style("top", (d3.event.layerY + 100) + "px")
+                .style("left", (d3.event.layerX + 900) + "px");
+            }
+      })
+      .on("mouseout", function(d) {
+          $(this).attr("fill-opacity", "1.0");
+                $("#tooltip-container").hide();
+      })
+      .on("click", function(d) {
+
+          dispatch.countryEnter(d.country, d);
+        });
+
+      
 
 
-
-
-
-
-
-
-
-
-
-
+  function updateScalesBubbles(){
+        
+    x.domain([0, d3.max(data, function(d) { return valueHash[d.location]; })])
+      .range([ 0, width ]);
+    
+    y.domain([0, d3.max(data, function(d) { return valueKnow[d.location]; })])
+            .range([ height, 0 ]);
  
- 
+    xAxis.scale(x)
+        .orient('bottom');
 
+    yAxis.scale(y)
+        .orient('left');
 
+    main.select('g')
+        .call(xAxis);
 
+  g.selectAll("circle").remove();
 
+     g.selectAll("scatter-dots")
+      .data(datasetTotal, function(d) { return d.country; })
+      .enter().append("svg:circle")
+         .attr("key", function(d) { return d.country;})
+          .attr("cy", function (d,i) { return y(d.valueK); } )
+          .attr("cx", function (d) { return x( d.value); } )
+          .attr("r", function (d) { if (_variable2 == 'Knowledge about HIV prevention in young people') {return  d.valueK/7; } else { return 6;} } )
+          .attr("fill", "orange")
+          .attr("stroke", "black")
+            .on("mouseover", function(d) {
+          var html = "";
+  
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            html += d.country+":";
+            html += "</span>";
+            html += "</div>";
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            if (_variable2 == 'Knowledge about HIV prevention in young people') {
+              html += "Knowledge:";
+            }
+            if (_variable2 == 'Total multiple sexual partnership') {
+              html += "Multiple sexual partnership:";
+            }
+            if (_variable2 == 'Total people inject drugs') {
+              html += "Inject drugs:";
+            }
+            if (_variable2 == 'Total sex workers AIDS prevalence') {
+              html += "Sex workers";
+            }
+            //html += _variable2;
+            //console.log(_variable2);
+            html += "</span>";
+            html += "<span class=\"tooltip_value\">";
+            //console.log("QUERO VER ISTO")
+            //console.log(d.country)
+            html += valueFormat(d.valueK);
+            html += "%";
+            html += "</span>";
+            html += "</div>";
+            
+            html += "<div class=\"tooltip_kv\">";
+            html += "<span class=\"tooltip_key\">";
+            html += "New cases:";
+            html += "</span>";
+            html += "<span class=\"tooltip_value\">";
+            html += valueFormat(d.value);
+            html += "";
+            html += "</span>";
+            html += "</div>";
+            
+            $("#tooltip-container").html(html);
+            $(this).attr("fill-opacity", "0.8");
+            $("#tooltip-container").show();
+            
+            var coordinates = d3.mouse(this);
+            
+            var map_width = $('.mainGroupWrapper_cdp')[0].getBoundingClientRect().width;
+            
+            if (d3.event.pageX < map_width / 2) {
+              d3.select("#tooltip-container")
+                .style("top", (d3.event.layerY) + "px")
+                .style("left", (d3.event.layerX) + "px");
+            } else {
+              var tooltip_width = $("#tooltip-container").width();
+              d3.select("#tooltip-container")
+                .style("top", (d3.event.layerY + 100) + "px")
+                .style("left", (d3.event.layerX + 900) + "px");
+            }
+      })
+      .on("mouseout", function(d) {
+       $(this).attr("fill-opacity", "1.0");
+                $("#tooltip-container").hide();
+      })
+        .on("click", function(d) {
+          dispatch.countryEnter(d.country, d);
+        }); 
 
-
-
-
-
-
-
+  }
+}
 
 
 var countrySelected;
 dispatch.on('countryEnter', function(d){
   if(countrySelected){      
-      d3.select("#top_1").selectAll("rect[key=\'"+countrySelected+"\']").transition().duration(1000).style("fill", "steelblue");
+      d3.select("#top_1").selectAll("rect[key=\'"+countrySelected+"\']").transition().duration(1000).style("fill", "orange");
+      d3.select("#bottom_1").selectAll("circle[key=\'"+countrySelected+"\']").transition().duration(1000).style("fill", "orange");
       d3.select("#canvas-svg").select("path[title=\'"+countrySelected+"\']").transition().duration(1000).attr("fill", colormap);
+      d3.select('#bottom_2').selectAll("circle[key=\'"+countrySelected+"\']").transition().duration(1000).attr("fill", "orange");
+      document.getElementById('input_2').value = countrySelected;
     }
   if(countrySelected != d){
     d3.select("#top_1").selectAll("rect[key=\'"+d+"\']").transition().duration(1000).style("fill", "#ff0000");
+    d3.select("#bottom_1").selectAll("circle[key=\'"+d+"\']").transition().duration(1000).style("fill", "#ff0000");
     d3.select("#canvas-svg").select("path[title=\'"+d+"\']").transition().duration(1000).attr("fill", "#ff0000");
+    d3.select("#bottom_2").selectAll("circle[key=\'"+d+"\']").transition().duration(1000).attr("fill", "#ff0000");
     countrySelected = d;
+      document.getElementById('input_2').value = countrySelected;
   }
   else{
     countrySelected = null;
